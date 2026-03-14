@@ -15,13 +15,11 @@ const signUpUser = async (req, res) => {
             return res.status(400).json({ message: "User already exists with this email" })
         }
 
-        const newUser = new User({
+        const newUser = await User.create({
             user_name,
             email,
             password
         })
-
-        await newUser.save()
 
         res.status(201).json({
             message: "User created successfully",
@@ -79,14 +77,33 @@ const signInUser = async (req, res) => {
 
 const allUsers = async (req, res) => {
     try {
+        const limit = 5;
+        const page = parseInt(req.query.page) || 1
+        const totalUsers = await User.countDocuments()
+        const totalPages = Math.ceil(totalUsers / limit);
+
+        if (page > totalPages && totalUsers > 0) {
+            return res.status(400).json({
+                message: `Invalid page number. Total available pages are only ${totalPages}`
+            });
+        }
+
+        const skipDocuments = (page - 1) * limit;
+
         const users = await User.find()
+            .skip(skipDocuments)
+            .limit(limit);
+
         res.status(200).json({
             message: "Users fetched successfully",
-            users
-        })
+            totalUsers: totalUsers,
+            totalPages: totalPages,
+            currentPage: page,
+            users,
+        });
     } catch (error) {
-        console.error("All Users Error:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        console.error("All Users Error:", error);
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
