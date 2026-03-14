@@ -18,7 +18,7 @@ const signUpUser = async (req, res) => {
         const newUser = new User({
             user_name,
             email,
-            password 
+            password
         })
 
         await newUser.save()
@@ -77,8 +77,22 @@ const signInUser = async (req, res) => {
     }
 }
 
+const allUsers = async (req, res) => {
+    try {
+        const users = await User.find()
+        res.status(200).json({
+            message: "Users fetched successfully",
+            users
+        })
+    } catch (error) {
+        console.error("All Users Error:", error)
+        res.status(500).json({ message: "Internal Server Error" })
+    }
+}
+
 module.exports = {
     signUpUser,
-    signInUser
+    signInUser,
+    allUsers
 }
 

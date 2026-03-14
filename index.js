@@ -17,6 +17,10 @@ app.get("/", (req, res) => {
     res.send("hello world")
 })
 
+app.get("/ping", (req, res) => {
+    res.send("pong")
+})
+
 // Routes
 app.use(listingRoutes)
 app.use(userRoutes)
@@ -28,4 +32,4 @@ if (process.env.NODE_ENV !== 'production') {
     })
 }
 
-module.exports = app
+module.exports = app
