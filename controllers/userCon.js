@@ -1,13 +1,23 @@
 const User = require("../models/UserSchema")
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcryptjs")
+
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+        expiresIn: "30d",
+    })
+}
 
 const signUpUser = async (req, res) => {
+    console.log(req.body, "signup body")
     try {
-        const { user_name, email, password } = req.body
+        const { user_name, name, email, password, user_type } = req.body
+        const finalUserName = user_name || name
 
-        // Simple validation
-        if (!user_name || !email || !password) {
-            return res.status(400).json({ message: "All fields are required" })
-        }
+        // // Simple validation
+        // if (!finalUserName || !email || !password) {
+        //     return res.status(400).json({ message: "All fields are required" })
+        // }
 
         // Check if user already exists
         const existingUser = await User.findOne({ email })
@@ -16,9 +26,10 @@ const signUpUser = async (req, res) => {
         }
 
         const newUser = await User.create({
-            user_name,
+            user_name: finalUserName,
             email,
-            password
+            password,
+            user_type: user_type || "USER"
         })
 
         res.status(201).json({
@@ -26,7 +37,8 @@ const signUpUser = async (req, res) => {
             user: {
                 id: newUser._id,
                 user_name: newUser.user_name,
-                email: newUser.email
+                email: newUser.email,
+                user_type: newUser.user_type
             }
         })
     } catch (error) {
@@ -56,13 +68,15 @@ const signInUser = async (req, res) => {
             return res.status(404).json({ message: "User not found" })
         }
 
-        // Check password (Note: currently plain text)
-        if (user.password !== password) {
+        // Check password (using bcrypt comparison)
+        const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) {
             return res.status(401).json({ message: "Invalid credentials" })
         }
 
         res.status(200).json({
             message: "Login successful",
+            token: generateToken(user._id),
             user: {
                 id: user._id,
                 user_name: user.user_name,
