@@ -22,7 +22,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         enum: ["USER", "ADMIN"],
         default: "USER"
-    }
+    },
+    profile_image: {
+        type: String,
+        default: ""
+    },
 }, { timestamps: true })
 
 UserSchema.pre("save", async function () {

@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken")
 const User = require("../models/UserSchema")
 
 const protect = async (req, res, next) => {
+    console.log(req.headers, "headers")
     let token
 
     if (
